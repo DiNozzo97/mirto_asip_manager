@@ -14,8 +14,8 @@ setuptools.setup(
     url="https://github.com/jarzab3/mirto_asip_manager",
     packages=setuptools.find_packages(),
     classifiers=(
-        "Programming Language :: Python :: 3.6.4",
+        "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
-        "Operating System :: Ubuntu Mate - ARM",
+        "Operating System :: linux2",
     ),
 )
