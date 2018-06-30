@@ -26,6 +26,10 @@ class MirtoRobot:
         """
         self.robot.terminate_all()
 
+    def get_version_info(self):
+        sys_info_service = self.robot.all_services.get("sys_info")
+        log.info("System version info: %s" % sys_info_service.system_version)
+
     def get_left_encoder_values(self, delta: bool=False) -> list:
         # Access encoders service
         encoders = self.robot.all_services.get('encoders')
@@ -76,9 +80,10 @@ class MirtoRobot:
 
 
 if __name__ == '__main__':
-    # Run simple tests
+    # Run services test
     mirto = MirtoRobot()
+    mirto.get_version_info()
     # mirto.test_encoders(0.1, 2)
-    mirto.test_motor(True, 10)
+    # mirto.test_motor(True, 3)
     # This will stop all threads and close ports
     mirto.terminate()

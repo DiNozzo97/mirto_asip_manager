@@ -13,14 +13,40 @@ from mirto_asip_manager.settings import logging as log
 import sys
 
 
+class SystemInfo:
+    def __init__(self, name: str, serial_manager) -> None:
+        self.name = name
+        self.serial_manager = serial_manager
+        self.header = asip.SYSTEM_MSG_HEADER
+        self.tag = asip.tag_SYSTEM_GET_INFO
+        self.system_version = None
+
+    def initialize(self):
+        # Enable all encoders by writing value 1, if you wish to disable you can do it by writing 0
+        request_string = str(self.header + ',' + self.tag + '\n')
+        self.serial_manager.send_request(request_string)
+
+    def process_response(self, message: str) -> None:
+        if message[3] != self.tag:
+            log.error("Unable to process received message: {}".format(message))
+        else:
+            self.system_version = message[5:-1]
+
+
 class Encoders:
-    def __init__(self, name: str, svc_id: str, debug: bool=False):
+    def __init__(self, name: str, svc_id: str, serial_manager, debug: bool=False):
         self.name = name
         self.svc_id = svc_id
         self.debug = debug
         self.left_values = None
         self.right_values = None
         self.TAG_ENCODER_RESPONSE = asip.id_ENCODER_SERVICE
+        self.serial_manager = serial_manager
+
+    def initialize(self):
+        # Enable all encoders by writing value 1, if you wish to disable you can do it by writing 0
+        request_string = str(self.svc_id + ',' + asip.tag_AUTOEVENT_REQUEST + ',' + str(1) + '\n')
+        self.serial_manager.send_request(request_string)
 
     def process_response(self, message: str) -> None:
         """
@@ -46,13 +72,13 @@ class Encoders:
 
 
 class Motor:
-    def __init__(self, name: str, svc_id: str, motor_id: int, conn, debug: bool=False):
+    def __init__(self, name: str, svc_id: str, motor_id: int, serial_manager, debug: bool=False) -> None:
         self.name = name
         self.svc_id = svc_id
         self.debug = debug
         self.motor_id = motor_id
         self.header = asip.id_MOTOR_SERVICE  # M
-        self.conn = conn
+        self.serial_manager = serial_manager
 
     def send_request(self, motor_power: int) -> None:
         """
@@ -62,11 +88,11 @@ class Motor:
         """
         request_string = str(self.header + ',' + self.svc_id + ',' + str(self.motor_id) + ',' +
                              str(motor_power) + '\n').encode()
-        if self.conn.is_open():
+        if self.serial_manager.is_open():
             if self.debug:
                 log.debug("Request for motor: {} send request message: {}".format(self.motor_id,
                                                                                   request_string.decode().strip("\n")))
-            successfully_sent_message = self.conn.send(request_string)
+            successfully_sent_message = self.serial_manager.send(request_string)
             if not successfully_sent_message:
                 log.error("Error while requesting motor speed")
         else:

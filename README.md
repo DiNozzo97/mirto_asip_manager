@@ -25,6 +25,10 @@ These instructions will get you a copy of the project up and running on your loc
 ```
 3) sudo install pip pyserial
 ```
+```
+4) pip install mirto_asip_manager
+4.1) pip install --user . --no-cache-dir (When installing local files)
+```
 
 ## Running the tests
 

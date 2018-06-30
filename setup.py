@@ -15,7 +15,7 @@ setuptools.setup(
     packages=['mirto_asip_manager'],
     classifiers=(
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: MIT License",
+        "License :: OSI Approved :: MIT",
         "Operating System :: OS Independent",
     ),
 )
