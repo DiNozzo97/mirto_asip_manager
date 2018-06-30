@@ -8,7 +8,7 @@ __maintainer__ = "Adam Jarzebak"
 __email__ = "adam@jarzebak.eu"
 __status__ = "Production"
 
-import mirto_asip_manager.asip
+import mirto_asip_manager.asip as asip
 from mirto_asip_manager.settings import logging as log
 import sys
 
