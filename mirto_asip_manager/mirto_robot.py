@@ -8,9 +8,9 @@ __maintainer__ = "Adam Jarzebak"
 __email__ = "adam@jarzebak.eu"
 __status__ = "Production"
 
-from asip_manager import AsipManager
+from mirto_asip_manager.asip_manager import AsipManager
 from time import sleep
-from settings import logging as log
+from mirto_asip_manager.settings import logging as log
 import time
 
 

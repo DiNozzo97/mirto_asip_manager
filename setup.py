@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="mirto_asip_manager",
-    version="1.0.1",
+    version="1.0.2",
     author="Adam Jarzebak",
     author_email="adam@jarzebak.eu",
     description="Serial manager for Mirto robot services",

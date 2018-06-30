@@ -8,8 +8,8 @@ __maintainer__ = "Adam Jarzebak"
 __email__ = "adam@jarzebak.eu"
 __status__ = "Production"
 
-import asip
-from settings import logging as log
+import mirto_asip_manager.asip
+from mirto_asip_manager.settings import logging as log
 import sys
 
 
@@ -31,7 +31,7 @@ class Encoders:
         """
         if message[1] != self.TAG_ENCODER_RESPONSE:
             # TODO error checking
-            # TODO check if svcID is correct in response message
+            # TODO check if svc_id is correct in response message
             # We have received a message but it is not an encoder reporting event
             log.error("Unable to process received message: {}".format(message))
         else:

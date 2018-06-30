@@ -12,7 +12,7 @@ import serial
 from time import sleep
 import sys
 import glob
-from settings import logging as log
+from mirto_asip_manager.settings import logging as log
 
 
 class SerialConnection:

@@ -8,13 +8,12 @@ __maintainer__ = "Adam Jarzebak"
 __email__ = "adam@jarzebak.eu"
 __status__ = "Production"
 
-from serialConnector import SerialConnection
-import asip
+from mirto_asip_manager.serialConnector import SerialConnection
 import threading
-from services import *
+from mirto_asip_manager.services import *
 from time import sleep
 import time
-from settings import logging as log
+from mirto_asip_manager.settings import logging as log
 
 
 class AsipManager:
@@ -57,18 +56,18 @@ class AsipManager:
         self.isReady = False
         log.info("Closing serial port %s" % self.selected_port)
 
-    def send_request(self, svcID, value):
+    def send_request(self, svc_id, value):
         if self.isReady:
-            request_string = str(svcID + ',' + asip.tag_AUTOEVENT_REQUEST + ',' + str(value) + '\n').encode()
+            request_string = str(svc_id + ',' + asip.tag_AUTOEVENT_REQUEST + ',' + str(value) + '\n').encode()
             if self.debug:
-                log.debug("Request for svc %s msg: %s" % (svcID, request_string.decode().strip('\n')))
+                log.debug("Request for svc %s msg: %s" % (svc_id, request_string.decode().strip('\n')))
             successfully_sent_message = self.conn.send(request_string)
             if not successfully_sent_message:
-                self.closePort()  # send failed so close port
+                self.close_serial()  # send failed so close port
         else:
             log.error('Serial port is not connected')
 
-    def msg_dispatcher(self, msg):
+    def msg_dispatcher(self, msg) -> None:
         if len(msg) > 0:
             msg_head = msg[0]
         else:
