@@ -3,7 +3,6 @@
 __author__ = "Adam Jarzebak"
 __copyright__ = "Copyright 2018, Middlesex University"
 __license__ = "MIT License"
-__version__ = "1.0.0"
 __maintainer__ = "Adam Jarzebak"
 __email__ = "adam@jarzebak.eu"
 __status__ = "Production"
@@ -17,25 +16,33 @@ from mirto_asip_manager.settings import logging as log
 
 
 class SerialManager:
-    def __init__(self):
+    def __init__(self, debug: bool=False) -> None:
         self.isReady = False
         self.conn = SerialConnection()
         self.ports = self.conn.list_available_ports()
         self.selected_port = self.ports[0]
-        self.debug = True
+        self.debug = debug
         if self.debug:
             log.debug("Available ports: {}".format(self.ports))
         if not self.isReady:
             self.open_serial()
         log.info("Serial port: %s opened successfully" % self.selected_port)
 
-    def on_open(self):
+    def on_open(self) -> None:
+        """
+        Check if port is open or closed, in case if is open will close it, when is close will open it.
+        :return:
+        """
         if self.conn.is_open():
             self.close_serial()
         else:
             self.open_serial()
 
-    def open_serial(self):
+    def open_serial(self) -> None:
+        """
+        Opens a serial port using specific parameters
+        :return:
+        """
         baud_rate = 57600
         my_port = self.selected_port
         timeout = 1
@@ -48,7 +55,7 @@ class SerialManager:
         else:
             log.error("Failed to open serial port")
 
-    def close_serial(self):
+    def close_serial(self) -> None:
         self.conn.close()
         self.isReady = False
         log.info("Closing serial port %s" % self.selected_port)
@@ -72,14 +79,20 @@ class SerialManager:
 
 
 class AsipManager:
-    def __init__(self):
-        self.serial_manager = SerialManager()
+    def __init__(self, debug: bool=False):
+        self.serial_manager = SerialManager(debug)
         self.run_event = None
         self.all_services = {}
         self.all_threads = []
-        self.debug = True
+        self.debug = debug
 
-    def msg_dispatcher(self, msg) -> None:
+    def msg_dispatcher(self, msg: str) -> None:
+        """
+        Function is checking if the message header is an event message or an error message or
+        informational or debug message. Based on the type, function will redirect it to the right functions
+        :param msg:
+        :return:
+        """
         if len(msg) > 0:
             msg_head = msg[0]
         else:
@@ -91,9 +104,16 @@ class AsipManager:
         elif msg_head == asip.DEBUG_MSG_HEADER:
             log.debug(msg[1:])
         elif msg_head == asip.ERROR_MSG_HEADER:
-            log.error('Err: ' + msg[1:])
+            log.error('Error: ' + msg[1:])
 
-    def event_dispatcher(self, msg):
+    def event_dispatcher(self, msg: str) -> None:
+        """
+        This function is responsible for identification of the header from messages. Based on a header will
+        redirect a message to the right service
+        :param msg:
+        :type msg: str
+        :return:
+        """
         service_id = msg[1]
         if service_id == asip.id_ENCODER_SERVICE:
             encoders = self.all_services.get('encoders')
@@ -103,45 +123,65 @@ class AsipManager:
             print('Bump')
         elif service_id == asip.SYSTEM_MSG_HEADER:
             sys_info_service = self.all_services.get("sys_info")
-            sys_info_service.process_response(msg)
+            if sys_info_service is not None:
+                sys_info_service.process_response(msg)
         elif service_id == asip.id_IR_REFLECTANCE_SERVICE:
-            print('Reflectance')
+            ir_sensor = self.all_services.get("ir_sensors")
+            if ir_sensor is not None:
+                ir_sensor.process_response(msg)
 
-    def run_services(self, run_event):
+    def run_services(self, run_event) -> None:
+        """
+        Main loop in which continuously receiving messages from serial buffer, is passing buffer to the 'msg_dispatcher'
+        :param run_event:
+        :return:
+        """
         while run_event.is_set():
             received_message = self.serial_manager.conn.get_buffer()
-            # print (received_message)
             self.msg_dispatcher(received_message)
             sleep(0.001)
 
-    def initialize_services(self) -> None:
+    def initialize_services(self, services_to_run: dict) -> None:
         """
+        Function is taking input argument (services_to_run: dict) and based on these arguments is starting services
         :return:
         """
         # Add version info service
         sys_info = SystemInfo(name="System Info", serial_manager=self.serial_manager)
-        sys_info.initialize()
+        sys_info.request_sys_info()
         self.all_services.update({'sys_info': sys_info})
 
-        # Add encoders service
-        encoders = Encoders(name="Encoders", svc_id=asip.id_ENCODER_SERVICE,
-                            serial_manager=self.serial_manager, debug=False)
-        encoders.initialize()
-        self.all_services.update({'encoders': encoders})
+        encoder_run_status = services_to_run.get("encoders")
+        if encoder_run_status[0]:
+            # Add encoders service
+            encoders = Encoders(name="Encoders",
+                                serial_manager=self.serial_manager, debug=encoder_run_status[1])
+            encoders.enable()
+            self.all_services.update({'encoders': encoders})
+            log.info("Service encoders enabled. Debug mode: {}".format(encoder_run_status[1]))
 
-        # Add motors service
-        motor_1 = Motor(name="Left Motor", svc_id=asip.tag_SET_MOTOR, motor_id=0,
-                        serial_manager=self.serial_manager, debug=False)
-        motor_2 = Motor(name="Right Motor", svc_id=asip.tag_SET_MOTOR, motor_id=1,
-                        serial_manager=self.serial_manager, debug=False)
-        self.all_services.update({'motor_1': motor_1})
-        self.all_services.update({'motor_2': motor_2})
+        motors_run_status = services_to_run.get("motors")
+        if motors_run_status[0]:
+            # Add motors service
+            motor_1 = Motor(name="Left Motor", motor_id=0,
+                            serial_manager=self.serial_manager, debug=motors_run_status[1])
+            motor_2 = Motor(name="Right Motor", motor_id=1,
+                            serial_manager=self.serial_manager, debug=motors_run_status[1])
 
-        # Print all services available
-        log.info("Initialing services: %s" % self.all_services.keys())
-        sleep(0.5)
+            self.all_services.update({'motor_1': motor_1})
+            self.all_services.update({'motor_2': motor_2})
+            log.info("Service motors enabled. Debug mode: {}".format(motors_run_status[1]))
 
-    def initialize_main(self) -> None:
+        ir_sensors_run_status = services_to_run.get("ir_sensors")
+        if ir_sensors_run_status[0]:
+            # Add IR sensor service
+            ir_sensors = IRSensors(name="IR Sensors", ir_id=1, serial_manager=self.serial_manager,
+                                   debug=ir_sensors_run_status[1])
+            ir_sensors.set_reporting_interval(10)
+            self.all_services.update({'ir_sensors': ir_sensors})
+            log.info("IR service enabled. Debug mode: {}".format(ir_sensors_run_status[1]))
+
+    def initialize_main(self, services_to_run: dict) -> None:
         self.run_event = threading.Event()
         self.run_event.set()
         main_thread = threading.Thread(name='Teensy msgs receiver', target=self.serial_manager.conn.receive_data,
@@ -158,7 +198,9 @@ class AsipManager:
             except Exception as error:
                 log.error("Could not create a thread %s" % error)
         # Init all services
-        self.initialize_services()
+        self.initialize_services(services_to_run)
+        # This delay allows to make sure all background services will run, before any task
+        sleep(2)
 
     def terminate_all(self) -> None:
         self.run_event.clear()
@@ -166,13 +208,3 @@ class AsipManager:
             thread.join()
             log.info("Thread run status: {}: Status: {}".format(thread.getName(), str(thread.is_alive())))
         self.serial_manager.close_serial()
-
-# motors = Motor(root,'Motor Control', ('Left', 'Right'))
-# encoders = Encoder(root,'Encoders',asip.id_ENCODER_SERVICE, ('Left', 'Right'))
-# bump = Service(root,'Bump Sensors',asip.id_BUMP_SERVICE, ('Left', 'Right'))
-# reflectance = Service(root,'Reflectance Sensors',asip.id_IR_REFLECTANCE_SERVICE,('Left', 'Center','Right'))
-
-# def showInfo(msg):
-#     info = msg.split(',')
-#     msg = 'ASIP version %s.%s running on %s using sketch: %s' % (info[0], info[1], info[2], info[4])
-#     logMsg(msg)

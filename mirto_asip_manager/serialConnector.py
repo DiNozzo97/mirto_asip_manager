@@ -3,7 +3,6 @@
 __author__ = "Adam Jarzebak"
 __copyright__ = "Copyright 2018, Middlesex University"
 __license__ = "MIT License"
-__version__ = "1.0.0"
 __maintainer__ = "Adam Jarzebak"
 __email__ = "adam@jarzebak.eu"
 __status__ = "Production"
@@ -56,7 +55,7 @@ class SerialConnection:
                 self.ser.write(msg)
                 return True
             except (OSError, serial.SerialException):
-                pass
+                return False
         return False
 
     def receive_data(self, run_event) -> None:
@@ -69,6 +68,7 @@ class SerialConnection:
                     sleep(0.01)
                 except (OSError, serial.SerialException) as error:
                     log.error("Serial connection problem. %s" % error)
+                    sys.exit()
 
     def get_buffer(self) -> str:
         return self.serBuffer.decode('utf-8')

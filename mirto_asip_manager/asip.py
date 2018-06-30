@@ -65,7 +65,7 @@ tag_CLEAR = 'C'            # clear screen
 id_PIXELS_SERVICE = 'P'
 # methods
 tag_SET_PIXELS = 'P'  # 32 bit packed color value
-tag_SET_PIXELS_RGB = 'p'  # colon seperated rgb values
+tag_SET_PIXELS_RGB = 'p'  # colon separated rgb values
 tag_SET_PIXEL_SEQUENCE = 'S'
 tag_SET_PIXEL_SEQUENCE_RGB = 's'
 tag_SET_BRIGHTNESS = 'B'
