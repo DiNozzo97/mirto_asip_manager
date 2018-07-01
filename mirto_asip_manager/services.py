@@ -173,3 +173,24 @@ class IRSensors:
                         return True
                 except ValueError:
                     pass
+
+
+class Tone:
+    def __init__(self, name: str, serial_manager, debug: bool = False) -> None:
+        self.name = name
+        self.serial_manager = serial_manager
+        self.tag = asip.tag_PLAY
+        self.header = asip.id_TONE_SERVICE
+        self.debug = debug
+
+    def send_request(self, frequency, duration) -> None:
+        """
+        :return: None
+        """
+        request_string = str(self.header + ',' + self.tag + ',' + str(frequency) + ',' + str(duration) + '\n')
+        self.serial_manager.send_request(request_string)
+        if self.debug:
+            log.debug("Tone request message: {}".format(request_string))
+
+    def play_tone(self, frequency, duration):
+        self.send_request(frequency, duration)

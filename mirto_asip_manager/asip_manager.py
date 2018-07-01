@@ -181,6 +181,13 @@ class AsipManager:
             self.all_services.update({'ir_sensors': ir_sensors})
             log.info("IR service enabled. Debug mode: {}".format(ir_sensors_run_status[1]))
 
+        tone_run_status = services_to_run.get("tone")
+        if tone_run_status[0]:
+            # Add tone service
+            tone = Tone(name="Tone", serial_manager=self.serial_manager, debug=tone_run_status[1])
+            self.all_services.update({"tone": tone})
+            log.info("Tone service enabled. Debug mode: {}".format(tone_run_status[1]))
+
     def initialize_main(self, services_to_run: dict) -> None:
         self.run_event = threading.Event()
         self.run_event.set()

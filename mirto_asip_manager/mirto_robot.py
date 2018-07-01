@@ -131,6 +131,23 @@ class MirtoRobot:
         else:
             log.warning("Service IR sensors is not enabled!")
 
+    def play_tone(self, frequency, duration):
+        """
+        This function allows to play sound with specific frequency for give duration.
+        :return: None
+        """
+        tone = self.robot.all_services.get("tone")
+        if tone is not None:
+            tone.play_tone(frequency, duration)
+            log.info("Finish playing tone")
+        else:
+            log.warning("Service tone is not enabled!")
+
+    def test_play_tone(self):
+        self.play_tone(440, 2000)
+        sleep(1)
+        log.info("Finished test for tone service")
+
     def test_encoders(self, interval: float=0.1, time_to_finish: int=10) -> None:
         end_time = time.time() + time_to_finish
         while time.time() < end_time:
