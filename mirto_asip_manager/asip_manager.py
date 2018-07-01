@@ -31,7 +31,7 @@ class SerialManager:
     def on_open(self) -> None:
         """
         Check if port is open or closed, in case if is open will close it, when is close will open it.
-        :return:
+        :return: None
         """
         if self.conn.is_open():
             self.close_serial()
@@ -41,7 +41,7 @@ class SerialManager:
     def open_serial(self) -> None:
         """
         Opens a serial port using specific parameters
-        :return:
+        :return: None
         """
         baud_rate = 57600
         my_port = self.selected_port
@@ -64,7 +64,8 @@ class SerialManager:
         """
         Example request string: str(svc_id + ',' + asip.tag_AUTOEVENT_REQUEST + ',' + str(value) + '\n')
         :param request_string:
-        :return:
+        :type request_string: str
+        :return: None
         """
         if self.isReady:
             request_string = request_string.encode()
@@ -91,7 +92,8 @@ class AsipManager:
         Function is checking if the message header is an event message or an error message or
         informational or debug message. Based on the type, function will redirect it to the right functions
         :param msg:
-        :return:
+        :type msg: str
+        :return: None
         """
         if len(msg) > 0:
             msg_head = msg[0]
@@ -112,7 +114,7 @@ class AsipManager:
         redirect a message to the right service
         :param msg:
         :type msg: str
-        :return:
+        :return: None
         """
         service_id = msg[1]
         if service_id == asip.id_ENCODER_SERVICE:
@@ -130,16 +132,16 @@ class AsipManager:
             if ir_sensor is not None:
                 ir_sensor.process_response(msg)
 
-    def run_services(self, run_event) -> None:
+    def run_services(self, received_message: str) -> None:
         """
         Main loop in which continuously receiving messages from serial buffer, is passing buffer to the 'msg_dispatcher'
-        :param run_event:
-        :return:
+        :param received_message:
+        :type received_message: str
+        :return: None
         """
-        while run_event.is_set():
-            received_message = self.serial_manager.conn.get_buffer()
-            self.msg_dispatcher(received_message)
-            sleep(0.001)
+        # while run_event.is_set():
+        #     received_message = self.serial_manager.conn.get_buffer()
+        self.msg_dispatcher(received_message)
 
     def initialize_services(self, services_to_run: dict) -> None:
         """
@@ -185,10 +187,10 @@ class AsipManager:
         self.run_event = threading.Event()
         self.run_event.set()
         main_thread = threading.Thread(name='Teensy msgs receiver', target=self.serial_manager.conn.receive_data,
-                                       args=(self.run_event,))
-        run_services_thread = threading.Thread(name='Services process', target=self.run_services,
-                                               args=(self.run_event,))
-        self.all_threads = [main_thread, run_services_thread]
+                                       args=(self.run_event, self.run_services, self.terminate_all))
+        # run_services_thread = threading.Thread(name='Services process', target=self.run_services,
+        #                                        args=(self.run_event,))
+        self.all_threads = [main_thread]
         # Start all threads
         for thread in self.all_threads:
             try:

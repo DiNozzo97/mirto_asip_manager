@@ -107,8 +107,8 @@ class MirtoRobot:
         :return:
         """
         motor_1 = self.robot.all_services.get('motor_1')
-        motor_2 = self.robot.all_services.get('motor_1')
-        if motor_1 or motor_1 is not None:
+        motor_2 = self.robot.all_services.get('motor_2')
+        if motor_1 is not None or motor_1 is not None:
             motor_1.stop_motor()
             motor_2.stop_motor()
             log.info("Motors stopped")
@@ -154,9 +154,9 @@ class MirtoRobot:
 
 
 if __name__ == '__main__':
-    services_on = {"encoders": [True, False], "motors": [True, False], "ir_sensors": [True, False]}
+    services_to_run = {"encoders": [True, False], "motors": [True, False], "ir_sensors": [True, False]}
     # Run services test
-    mirto = MirtoRobot(debug=False, services_on=services_on)
+    mirto = MirtoRobot(debug=False, services_on=services_to_run)
     mirto.test_encoders(0.1, 2)
     mirto.test_motor(True, 2)
     mirto.test_ir_sensors(2, 0.2)

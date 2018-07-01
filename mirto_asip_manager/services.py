@@ -1,7 +1,5 @@
 #!/usr/bin/python3
 # -*- coding: <utf-8> -*-
-import sys
-
 __author__ = "Adam Jarzebak"
 __copyright__ = "Copyright 2018, Middlesex University"
 __license__ = "MIT License"
@@ -11,6 +9,7 @@ __status__ = "Production"
 
 import mirto_asip_manager.asip as asip
 from mirto_asip_manager.settings import logging as log
+import sys
 
 
 class SystemInfo:
@@ -142,7 +141,7 @@ class IRSensors:
     def set_reporting_interval(self, interval: int) -> None:
         """
         :param interval:
-        :return:`
+        :return:
         """
         request_string = str(self.header + ',' + self.tag_autoevent_request + ',' + str(interval) + '\n')
         self.serial_manager.send_request(request_string)

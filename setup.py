@@ -21,7 +21,7 @@ class CustomInstallCommand(install):
 
 setuptools.setup(
     name="mirto_asip_manager",
-    version="1.0.4",
+    version="1.0.5",
     author="Adam Jarzebak",
     author_email="adam@jarzebak.eu",
     description="Serial manager for Mirto robot services",

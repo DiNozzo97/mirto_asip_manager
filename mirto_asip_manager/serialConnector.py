@@ -17,10 +17,9 @@ from mirto_asip_manager.settings import logging as log
 class SerialConnection:
     def __init__(self):
         self.ser = serial.Serial()
-        # make our own buffer
-        self.serBuffer = b''
         self.ser.timeout = 0  # Ensure non-blocking
         self.ser.writeTimeout = 0  # Ensure non-blocking
+        self.debug = False
 
     def open(self, port, baud, timeout) -> None:
         """
@@ -58,17 +57,34 @@ class SerialConnection:
                 return False
         return False
 
-    def receive_data(self, run_event) -> None:
+    def receive_data(self, run_event, run_services, terminate_all) -> None:
         if not self.ser.isOpen():
-            log.error("Connection dropped, please check self.serial.")
+            log.error("Connection dropped, please check serial")
         else:
+            ser_buffer = ""
             while run_event.is_set():
                 try:
-                    self.serBuffer = self.ser.readline()
-                    sleep(0.01)
-                except (OSError, serial.SerialException) as error:
-                    log.error("Serial connection problem. %s" % error)
-                    sys.exit()
+                    c = self.ser.read()  # attempt to read a character from Serial
+                    c = c.decode('utf-8', errors='ignore')
+                    if len(c) == 0:  # was anything read?
+                        pass
+                    else:
+                        if c == '\n' or c == '\n':
+                            if len(ser_buffer) > 0:
+                                ser_buffer += '\n'
+                                run_services(ser_buffer)
+                                if self.debug:
+                                    log.debug("DEBUG: Complete message from serial: {}\n".format(ser_buffer))
+                            ser_buffer = ""
+                        else:
+                            ser_buffer += c
+                except serial.SerialTimeoutException:
+                    continue  # Go to next iteration in case of serial timeout
+                except serial.SerialException as e:
+                    log.error("Caught SerialException in serial read: {}. Listener Thread will now stop".format(e))
+                    terminate_all()
+                except Exception as e:
+                    sys.stdout.write("Caught exception: {} Listener Thread will NOT stop".format(e))
 
     def get_buffer(self) -> str:
         return self.serBuffer.decode('utf-8')
