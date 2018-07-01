@@ -139,8 +139,6 @@ class AsipManager:
         :type received_message: str
         :return: None
         """
-        # while run_event.is_set():
-        #     received_message = self.serial_manager.conn.get_buffer()
         self.msg_dispatcher(received_message)
 
     def initialize_services(self, services_to_run: dict) -> None:
@@ -188,8 +186,6 @@ class AsipManager:
         self.run_event.set()
         main_thread = threading.Thread(name='Teensy msgs receiver', target=self.serial_manager.conn.receive_data,
                                        args=(self.run_event, self.run_services, self.terminate_all))
-        # run_services_thread = threading.Thread(name='Services process', target=self.run_services,
-        #                                        args=(self.run_event,))
         self.all_threads = [main_thread]
         # Start all threads
         for thread in self.all_threads:
