@@ -99,8 +99,8 @@ class AsipManager:
             msg_head = msg[0]
         else:
             # TODO Fix problem with incorrect message type
-            msg_head = ""
-            log.error("Problem with with message dispatching")
+            log.error("Problem with with message dispatching. Terminating program")
+            sys.exit()
         if msg_head == asip.EVENT_HEADER:
             self.event_dispatcher(msg)
         elif msg_head == asip.DEBUG_MSG_HEADER:

@@ -154,11 +154,11 @@ class MirtoRobot:
 
 
 if __name__ == '__main__':
-    services_to_run = {"encoders": [True, False], "motors": [True, False], "ir_sensors": [True, False]}
-    # Run services test
-    mirto = MirtoRobot(debug=False, services_on=services_to_run)
-    mirto.test_encoders(0.1, 2)
-    mirto.test_motor(True, 2)
-    mirto.test_ir_sensors(2, 0.2)
-    # This will stop all threads and close ports
-    mirto.terminate()
+services_to_run = {"encoders": [True, False], "motors": [True, False], "ir_sensors": [True, False]}
+# Run services test
+mirto = MirtoRobot(debug=False, services_on=services_to_run)
+mirto.test_encoders(0.1, 2)
+mirto.test_motor(True, 2)
+mirto.test_ir_sensors(2, 0.2)
+# This will stop all threads and close ports
+mirto.terminate()
